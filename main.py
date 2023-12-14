@@ -3,6 +3,7 @@ from random import choice
 from callables.basic_maths import add, subtract, multiply, protected_divide, sine, cosine, \
     protected_power, protected_log
 from symbolic_regression.terminals import x
+from symbolic_regression.dataset import get_data_points
 
 
 functions = {
@@ -57,8 +58,9 @@ def get_random_expression(level=1, max_level=3):
 
 
 if __name__ == '__main__':
-    expression = get_random_expression()
-    func = get_callable_expression(expression)
-    print(expression)
-    test_point = (0.1, 0.2)
-    print(func(test_point)())
+    for _ in range(10):
+        expression = get_random_expression()
+        func = get_callable_expression(expression)
+        data_points = get_data_points(10)
+        error = sum([(point[1] - func(point)()) ** 2 for point in data_points])
+        print(error, expression)
