@@ -4,6 +4,7 @@ from callables.basic_maths import add, subtract, multiply, protected_divide, sin
     protected_power, protected_log, number
 from symbolic_regression.terminals import x
 from symbolic_regression.dataset import get_data_points
+from symbolic_regression.gp import calculate_error
 
 
 functions = {
@@ -67,8 +68,7 @@ if __name__ == '__main__':
     for _ in range(10):
         expression = get_random_expression(max_level=5)
         func = get_callable_expression(expression)
-        # Calculate the sum of the absolute errors
-        error = sum([abs((point[1] - func(point)())) for point in data_points])
+        error = calculate_error(func, data_points)
         evaluated_functions.append((error, expression))
     evaluated_functions = sorted(evaluated_functions, key=lambda point: point[0])
     for evaluated_function in evaluated_functions:
