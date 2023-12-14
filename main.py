@@ -58,10 +58,14 @@ def get_random_expression(level=1, max_level=3):
 
 
 if __name__ == '__main__':
+    evaluated_functions = []
+    data_points = get_data_points()
     for _ in range(10):
         expression = get_random_expression(max_level=5)
         func = get_callable_expression(expression)
-        data_points = get_data_points()
         # Calculate the sum of the absolute errors
         error = sum([abs((point[1] - func(point)())) for point in data_points])
-        print(error, expression)
+        evaluated_functions.append((error, expression))
+    evaluated_functions = sorted(evaluated_functions, key=lambda point: point[0])
+    for evaluated_function in evaluated_functions:
+        print(evaluated_function)

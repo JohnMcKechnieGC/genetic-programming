@@ -44,7 +44,7 @@ def protected_power(arg1, arg2):
     def callable_protected_power():
         try:
             return math.pow(arg1(), arg2())
-        except (ValueError, ZeroDivisionError):
+        except (ValueError, ZeroDivisionError, OverflowError):
             return 1.0
     return callable_protected_power
 
