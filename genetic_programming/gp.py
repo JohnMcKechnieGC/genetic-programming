@@ -44,6 +44,20 @@ def get_random_expression(functions, all_symbols, terminal_symbols, level=1, max
         else tree(all_symbols, terminal_symbols, functions, symbol, level, max_level)
 
 
+def flatten(expression, path=None):
+    if path is None:
+        path = [0]
+    symbols_list = []
+    if not isinstance(expression, tuple):
+        symbols_list.append((expression, path))
+    else:
+        symbols_list.append((expression[0], path))
+        for i in range(len(expression[1:])):
+            new_path = path.copy()
+            new_path.append(i)
+            symbols_list.extend(flatten(expression[i + 1], new_path))
+    return symbols_list
+
 def solve(data, terminals, functions, error_function, numeric_constants=None, iterations=100, max_level=5):
     function_symbols = list(functions.keys())
     terminal_symbols = list(terminals.keys())
