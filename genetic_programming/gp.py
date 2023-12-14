@@ -58,6 +58,21 @@ def flatten(expression, path=None):
             symbols_list.extend(flatten(expression[i + 1], new_path))
     return symbols_list
 
+
+def mutate(expression, target_path, functions, all_symbols, terminal_symbols):
+    if len(target_path) == 1:
+        return get_random_expression(functions, all_symbols, terminal_symbols)
+    branch = target_path.pop(0)
+    new_expression = [expression[0]]
+    for i in range(len(expression[1:])):
+        if i == branch:
+            new_expression.append(mutate(expression[i + 1], target_path, functions, all_symbols, terminal_symbols))
+        else:
+            new_expression.append(expression[i + 1])
+    new_expression = tuple(new_expression)
+    return new_expression
+
+
 def solve(data, terminals, functions, error_function, numeric_constants=None, iterations=100, max_level=5):
     function_symbols = list(functions.keys())
     terminal_symbols = list(terminals.keys())
@@ -74,4 +89,13 @@ def solve(data, terminals, functions, error_function, numeric_constants=None, it
         if best_error is None or error < best_error:
             best_error = error
             best_expression = expression
+
+    target = choice(flatten(best_expression))[1]
+
+    # Demo of mutation
+    mutated_expression = mutate(best_expression, target, functions, all_symbols, terminal_symbols)
+    mutated_callable = get_callable_expression(functions, terminals, mutated_expression)
+    mutated_expression_error = error_function(mutated_callable, data)
+    print(mutated_expression_error, mutated_expression)
+
     return best_error, best_expression
