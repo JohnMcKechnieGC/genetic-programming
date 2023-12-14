@@ -1,7 +1,7 @@
 from inspect import getfullargspec
 from random import choice
 from callables.basic_maths import add, subtract, multiply, protected_divide, sine, cosine, \
-    protected_power, protected_log
+    protected_power, protected_log, number
 from symbolic_regression.terminals import x
 from symbolic_regression.dataset import get_data_points
 
@@ -23,6 +23,7 @@ terminals = {
 
 function_symbols = list(functions.keys())
 terminal_symbols = list(terminals.keys())
+terminal_symbols.extend([1, 2, 3, 4, 5])
 all_symbols = function_symbols + terminal_symbols
 
 
@@ -36,7 +37,10 @@ def get_callable_expression(val):
                 args.append(get_callable_expression(arg)(point))
             return function(*args)
         else:
-            return terminals[val](point)
+            if str(val).isnumeric():
+                return number(val)
+            else:
+                return terminals[val](point)
     return callable_expression
 
 

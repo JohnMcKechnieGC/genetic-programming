@@ -1,6 +1,12 @@
 import math
 
 
+def number(val):
+    def callable_number():
+        return float(val)
+    return callable_number
+
+
 def add(arg1, arg2):
     def callable_add():
         return arg1() + arg2()
