@@ -67,13 +67,12 @@ def get_random_expression(level=1, max_level=3):
 
 
 if __name__ == '__main__':
-    evaluated_functions = []
     data_points = get_data_points()
-    for _ in range(10):
+    best_so_far = None
+    for _ in range(100):
         expression = get_random_expression(max_level=5)
         func = get_callable_expression(expression)
         error = calculate_error(func, data_points)
-        evaluated_functions.append((error, expression))
-    evaluated_functions = sorted(evaluated_functions, key=lambda point: point[0])
-    for evaluated_function in evaluated_functions:
-        print(evaluated_function)
+        if best_so_far is None or error < best_so_far:
+            best_so_far = error
+            print(error, expression)
