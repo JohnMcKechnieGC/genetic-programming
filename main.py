@@ -52,15 +52,16 @@ def get_random_expression(level=1, max_level=3):
         function_callable = functions[symbol]
         arity = len(getfullargspec(function_callable).args)
         result = [symbol]
-        result.extend([get_random_expression(level + 1) for _ in range(arity)])
+        result.extend([get_random_expression(level + 1, max_level=max_level) for _ in range(arity)])
         result = tuple(result)
         return result
 
 
 if __name__ == '__main__':
     for _ in range(10):
-        expression = get_random_expression()
+        expression = get_random_expression(max_level=5)
         func = get_callable_expression(expression)
-        data_points = get_data_points(10)
-        error = sum([(point[1] - func(point)()) ** 2 for point in data_points])
+        data_points = get_data_points()
+        # Calculate the sum of the absolute errors
+        error = sum([abs((point[1] - func(point)())) for point in data_points])
         print(error, expression)

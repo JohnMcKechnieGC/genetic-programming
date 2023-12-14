@@ -21,10 +21,10 @@ def multiply(arg1, arg2):
 
 def protected_divide(arg1, arg2):
     def callable_protected_divide():
-        if arg2 == 0:
-            return 1
-        else:
+        try:
             return arg1() / arg2()
+        except ZeroDivisionError:
+            return 1.0
     return callable_protected_divide
 
 
@@ -44,8 +44,8 @@ def protected_power(arg1, arg2):
     def callable_protected_power():
         try:
             return math.pow(arg1(), arg2())
-        except ValueError:
-            return 1
+        except (ValueError, ZeroDivisionError):
+            return 1.0
     return callable_protected_power
 
 
@@ -53,6 +53,6 @@ def protected_log(arg1, arg2):
     def callable_protected_log():
         try:
             return math.log(arg1(), arg2())
-        except ValueError:
-            return 1
+        except (ValueError, ZeroDivisionError):
+            return 1.0
     return callable_protected_log
