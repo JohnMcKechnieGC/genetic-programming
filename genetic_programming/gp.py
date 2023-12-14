@@ -44,18 +44,20 @@ def get_random_expression(functions, all_symbols, terminal_symbols, level=1, max
         else tree(all_symbols, terminal_symbols, functions, symbol, level, max_level)
 
 
-def solve(data_points, terminals, functions, error_function, numeric_constants=None, iterations=100, max_level=5):
+def solve(data, terminals, functions, error_function, numeric_constants=None, iterations=100, max_level=5):
     function_symbols = list(functions.keys())
     terminal_symbols = list(terminals.keys())
     if numeric_constants is not None:
         terminal_symbols.extend(numeric_constants)
     all_symbols = function_symbols + terminal_symbols
 
-    best_so_far = None
+    best_error = None
+    best_expression = None
     for _ in range(iterations):
         expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
         func = get_callable_expression(functions, terminals, expression)
-        error = error_function(func, data_points)
-        if best_so_far is None or error < best_so_far:
-            best_so_far = error
-            print(error, expression)
+        error = error_function(func, data)
+        if best_error is None or error < best_error:
+            best_error = error
+            best_expression = expression
+    return best_error, best_expression

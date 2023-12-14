@@ -1,11 +1,11 @@
-from symbolic_regression.terminals import x
-from symbolic_regression.dataset import get_data_points
-from symbolic_regression.gp import calculate_error
 from genetic_programming.gp import solve
 from genetic_programming.callables.basic_maths import \
     add, subtract, multiply, protected_divide, sine, cosine, protected_power, protected_log
+from symbolic_regression.terminals import x
+from symbolic_regression.dataset import get_data_points
+from symbolic_regression.gp import mean_absolute_error
 
-functions = {
+domain_functions = {
     '+': add,
     '-': subtract,
     '*': multiply,
@@ -16,11 +16,18 @@ functions = {
     'log': protected_log,
 }
 
-terminals = {
+domain_terminals = {
     'x': x
 }
 
 
 if __name__ == '__main__':
     data_points = get_data_points()
-    solve(data_points, terminals, functions, calculate_error, [1, 2, 3, 4, 5])
+    numeric_constant_terminals = [1, 2, 3, 4, 5]
+    error, expression = solve(data_points,
+                              domain_terminals,
+                              domain_functions,
+                              mean_absolute_error,
+                              numeric_constants=numeric_constant_terminals,
+                              iterations=100)
+    print(error, expression)
