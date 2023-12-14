@@ -29,37 +29,41 @@ all_symbols = function_symbols + terminal_symbols
 
 
 def get_callable_expression(val):
+    def leaf_node(point):
+        if str(val).isnumeric():
+            return number(val)
+        else:
+            return terminals[val](point)
+
+    def branch_node(point):
+        symbol = val[0]
+        function = functions[symbol]
+        args = []
+        for arg in val[1:]:
+            args.append(get_callable_expression(arg)(point))
+        return function(*args)
+
     def callable_expression(point):
         if isinstance(val, tuple):
-            symbol = val[0]
-            function = functions[symbol]
-            args = []
-            for arg in val[1:]:
-                args.append(get_callable_expression(arg)(point))
-            return function(*args)
+            return branch_node(point)
         else:
-            if str(val).isnumeric():
-                return number(val)
-            else:
-                return terminals[val](point)
+            return leaf_node(point)
+
     return callable_expression
 
 
-def get_random_expression(level=1, max_level=3):
-    if level < max_level:
-        symbol = choice(all_symbols)
-    else:
-        symbol = choice(terminal_symbols)
+def tree(symbol, level, max_level):
+    function_callable = functions[symbol]
+    arity = len(getfullargspec(function_callable).args)
+    result = [symbol]
+    result.extend([get_random_expression(level + 1, max_level) for _ in range(arity)])
+    result = tuple(result)
+    return result
 
-    if symbol in terminal_symbols:
-        return symbol
-    else:
-        function_callable = functions[symbol]
-        arity = len(getfullargspec(function_callable).args)
-        result = [symbol]
-        result.extend([get_random_expression(level + 1, max_level=max_level) for _ in range(arity)])
-        result = tuple(result)
-        return result
+
+def get_random_expression(level=1, max_level=3):
+    symbol = choice(all_symbols) if level < max_level else choice(terminal_symbols)
+    return symbol if symbol in terminal_symbols else tree(symbol, level, max_level)
 
 
 if __name__ == '__main__':
