@@ -75,30 +75,56 @@ def mutate(expression, target_path, functions, all_symbols, terminal_symbols, re
     return new_expression
 
 
-def solve(data, terminals, functions, error_function, numeric_constants=None, iterations=100, max_level=5):
+def setup(data, functions, numeric_constants, terminals):
     function_symbols = list(functions.keys())
     terminal_symbols = list(terminals.keys())
     if numeric_constants is not None:
         terminal_symbols.extend(numeric_constants)
     all_symbols = function_symbols + terminal_symbols
-
-    best_expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
-    best_error = error_function(get_callable_expression(functions, terminals, best_expression), data)
-
     training_data = data[:int(len(data) / 2)]
     test_data = data[int(len(data) / 2):]
+    return all_symbols, terminal_symbols, test_data, training_data
+
+
+def solve_mutation(data, terminals, functions, error_function, numeric_constants=None, iterations=100, max_level=5):
+    all_symbols, terminal_symbols, test_data, training_data = setup(data, functions, numeric_constants, terminals)
+
+    best_expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
+    best_error = error_function(get_callable_expression(functions, terminals, best_expression), training_data)
+
     for i in range(iterations):
         nodes = flatten(best_expression)
         selected_node = choice(nodes)
         target = selected_node[1]
-        expression = mutate(best_expression, target, functions, all_symbols, terminal_symbols)
-        callable_expression = get_callable_expression(functions, terminals, expression)
+        new_expression = mutate(best_expression, target, functions, all_symbols, terminal_symbols)
+        callable_expression = get_callable_expression(functions, terminals, new_expression)
         training_set_error = error_function(callable_expression, training_data)
 
         if training_set_error < best_error:
             best_error = training_set_error
-            best_expression = expression
+            best_expression = new_expression
             test_set_error = error_function(callable_expression, test_data)
-            print(i, training_set_error, test_set_error, expression)
+            print(i, training_set_error, test_set_error, new_expression)
+
+    return best_error, best_expression
+
+
+def solve_random(data, terminals, functions, error_function, numeric_constants=None, iterations=100, max_level=5):
+    all_symbols, terminal_symbols, test_data, training_data = setup(data, functions, numeric_constants, terminals)
+
+    best_expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
+    best_error = error_function(get_callable_expression(functions, terminals, best_expression),
+                                training_data)
+
+    for i in range(iterations):
+        new_expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
+        callable_expression = get_callable_expression(functions, terminals, new_expression)
+        training_set_error = error_function(callable_expression, training_data)
+
+        if training_set_error < best_error:
+            best_error = training_set_error
+            best_expression = new_expression
+            test_set_error = error_function(callable_expression, test_data)
+            print(i, training_set_error, test_set_error, new_expression)
 
     return best_error, best_expression
