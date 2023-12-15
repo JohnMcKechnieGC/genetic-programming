@@ -29,5 +29,5 @@ if __name__ == '__main__':
                               domain_functions,
                               mean_absolute_error,
                               numeric_constants=numeric_constant_terminals,
-                              iterations=1)
+                              iterations=1000)
     print(error, expression)

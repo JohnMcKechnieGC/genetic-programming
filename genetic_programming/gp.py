@@ -59,17 +59,19 @@ def flatten(expression, path=None):
     return symbols_list
 
 
-def mutate(expression, target_path, functions, all_symbols, terminal_symbols):
+def mutate(expression, target_path, functions, all_symbols, terminal_symbols, replacement=None):
     if len(target_path) == 1:
-        return get_random_expression(functions, all_symbols, terminal_symbols)
-    branch = target_path.pop(0)
-    new_expression = [expression[0]]
-    for i in range(len(expression[1:])):
-        if i == branch:
-            new_expression.append(mutate(expression[i + 1], target_path, functions, all_symbols, terminal_symbols))
-        else:
-            new_expression.append(expression[i + 1])
+        return get_random_expression(functions, all_symbols, terminal_symbols) \
+            if replacement is None else replacement
+
+    root = expression[0]
+    operands = list(expression[1:])
+    branch = target_path[1]
+    operands[branch] = mutate(operands[branch], target_path[1:], functions, all_symbols, terminal_symbols, replacement)
+    new_expression = [root]
+    new_expression.extend(operands)
     new_expression = tuple(new_expression)
+
     return new_expression
 
 
@@ -80,22 +82,20 @@ def solve(data, terminals, functions, error_function, numeric_constants=None, it
         terminal_symbols.extend(numeric_constants)
     all_symbols = function_symbols + terminal_symbols
 
-    best_error = None
-    best_expression = None
+    best_expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
+    best_error = error_function(get_callable_expression(functions, terminals, best_expression), data)
+
     for _ in range(iterations):
-        expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
-        func = get_callable_expression(functions, terminals, expression)
-        error = error_function(func, data)
-        if best_error is None or error < best_error:
+        nodes = flatten(best_expression)
+        selected_node = choice(nodes)
+        target = selected_node[1]
+        expression = mutate(best_expression, target, functions, all_symbols, terminal_symbols)
+        callable_expression = get_callable_expression(functions, terminals, expression)
+        error = error_function(callable_expression, data)
+
+        if error < best_error:
+            print(error, expression)
             best_error = error
             best_expression = expression
-
-    target = choice(flatten(best_expression))[1]
-
-    # Demo of mutation
-    mutated_expression = mutate(best_expression, target, functions, all_symbols, terminal_symbols)
-    mutated_callable = get_callable_expression(functions, terminals, mutated_expression)
-    mutated_expression_error = error_function(mutated_callable, data)
-    print(mutated_expression_error, mutated_expression)
 
     return best_error, best_expression
