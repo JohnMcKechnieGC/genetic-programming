@@ -85,17 +85,20 @@ def solve(data, terminals, functions, error_function, numeric_constants=None, it
     best_expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
     best_error = error_function(get_callable_expression(functions, terminals, best_expression), data)
 
+    training_data = data[:int(len(data) / 2)]
+    test_data = data[int(len(data) / 2):]
     for _ in range(iterations):
         nodes = flatten(best_expression)
         selected_node = choice(nodes)
         target = selected_node[1]
         expression = mutate(best_expression, target, functions, all_symbols, terminal_symbols)
         callable_expression = get_callable_expression(functions, terminals, expression)
-        error = error_function(callable_expression, data)
+        training_set_error = error_function(callable_expression, training_data)
 
-        if error < best_error:
-            print(error, expression)
-            best_error = error
+        if training_set_error < best_error:
+            best_error = training_set_error
             best_expression = expression
+            test_set_error = error_function(callable_expression, test_data)
+            print(training_set_error, test_set_error, expression)
 
     return best_error, best_expression

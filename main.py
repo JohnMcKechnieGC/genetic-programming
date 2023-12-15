@@ -22,12 +22,12 @@ domain_terminals = {
 
 
 if __name__ == '__main__':
-    data_points = get_data_points()
+    data_points = get_data_points(n=200)
     numeric_constant_terminals = [1, 2, 3, 4, 5]
     error, expression = solve(data_points,
                               domain_terminals,
                               domain_functions,
                               mean_absolute_error,
                               numeric_constants=numeric_constant_terminals,
-                              iterations=1000)
+                              iterations=50000)
     print(error, expression)
