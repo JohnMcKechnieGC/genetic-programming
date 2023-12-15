@@ -1,6 +1,7 @@
 from inspect import getfullargspec
-from random import choice
+from random import choice, randint, random
 from genetic_programming.callables.basic_maths import number
+from copy import deepcopy
 
 
 def get_callable_expression(functions, terminals, val):
@@ -120,6 +121,13 @@ def setup(data, functions, numeric_constants, terminals):
     return all_symbols, terminal_symbols, test_data, training_data
 
 
+def get_random_target(expression):
+    nodes = flatten(expression)
+    selected_node = choice(nodes)
+    target = selected_node[1]
+    return target
+
+
 def solve_mutation(data, terminals, functions, error_function, numeric_constants=None, iterations=100, max_level=5):
     all_symbols, terminal_symbols, test_data, training_data = setup(data, functions, numeric_constants, terminals)
 
@@ -127,9 +135,7 @@ def solve_mutation(data, terminals, functions, error_function, numeric_constants
     best_error = error_function(get_callable_expression(functions, terminals, best_expression), training_data)
 
     for i in range(iterations):
-        nodes = flatten(best_expression)
-        selected_node = choice(nodes)
-        target = selected_node[1]
+        target = get_random_target(best_expression)
         new_expression = mutate(best_expression, target, functions, all_symbols, terminal_symbols)
         callable_expression = get_callable_expression(functions, terminals, new_expression)
         training_set_error = error_function(callable_expression, training_data)
@@ -162,3 +168,44 @@ def solve_random(data, terminals, functions, error_function, numeric_constants=N
             print(i, training_set_error, test_set_error, new_expression)
 
     return best_error, best_expression
+
+
+def solve(data, terminals, functions, error_function,
+          numeric_constants=None, iterations=5, max_level=5, population_size=10, crossover_rate=0.7, mutation_rate=0.1):
+    all_symbols, terminal_symbols, test_data, training_data = setup(data, functions, numeric_constants, terminals)
+
+    population = [get_random_expression(functions, all_symbols, terminal_symbols, max_level=max_level)
+                  for _ in range(population_size)]
+    population = [(population[i],
+                   error_function(get_callable_expression(functions, terminals, population[i]), training_data))
+                  for i in range(population_size)]
+    next_generation = []
+
+    for _ in range(iterations):
+        for _ in range(population_size // 2):
+            r1 = randint(0, population_size - 1)
+            r2 = randint(0, population_size - 1)
+            parent1 = population[r1][0] if population[r1][1] > population[r2][1] else population[r2][0]
+            r1 = randint(0, population_size - 1)
+            r2 = randint(0, population_size - 1)
+            parent2 = population[r1][0] if population[r1][1] > population[r2][1] else population[r2][0]
+            if random() < crossover_rate:
+                child1, child2 = crossover(parent1, parent2)
+            else:
+                child1 = deepcopy(parent1)
+                child2 = deepcopy(parent2)
+            if random() < mutation_rate:
+                mutation_target = get_random_target(child1)
+                child1 = mutate(child1, mutation_target, functions, all_symbols, terminal_symbols)
+            if random() < mutation_rate:
+                mutation_target = get_random_target(child2)
+                child2 = mutate(child2, mutation_target, functions, all_symbols, terminal_symbols)
+            next_generation.append(child1)
+            next_generation.append(child2)
+        population = next_generation
+        population = [(population[i],
+                       error_function(get_callable_expression(functions, terminals, population[i]), training_data))
+                      for i in range(population_size)]
+        next_generation = []
+    population = sorted(population, key=lambda x: x[1])
+    return population[0][1], population[0][0]
