@@ -75,6 +75,40 @@ def mutate(expression, target_path, functions, all_symbols, terminal_symbols, re
     return new_expression
 
 
+def get_subtree(expression, target_path):
+    if len(target_path) == 1:
+        return expression
+    else:
+        operands = list(expression[1:])
+        branch = target_path[1]
+        return get_subtree(operands[branch], target_path[1:])
+
+
+def replace_subtree(expression, target_path, replacement):
+    if len(target_path) == 1:
+        return replacement
+
+    root = expression[0]
+    operands = list(expression[1:])
+    branch = target_path[1]
+    operands[branch] = replace_subtree(operands[branch], target_path[1:], replacement)
+    new_expression = [root]
+    new_expression.extend(operands)
+    new_expression = tuple(new_expression)
+
+    return new_expression
+
+
+def crossover(expression1, expression2, target1=None, target2=None):
+    target1 = choice(flatten(expression1))[1] if target1 is None else target1
+    target2 = choice(flatten(expression2))[1] if target2 is None else target2
+    subtree1 = get_subtree(expression1, target1)
+    subtree2 = get_subtree(expression2, target2)
+    crossed1 = replace_subtree(expression1, target1, subtree2)
+    crossed2 = replace_subtree(expression2, target2, subtree1)
+    return crossed1, crossed2
+
+
 def setup(data, functions, numeric_constants, terminals):
     function_symbols = list(functions.keys())
     terminal_symbols = list(terminals.keys())
