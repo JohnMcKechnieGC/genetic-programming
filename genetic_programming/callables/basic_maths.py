@@ -36,13 +36,19 @@ def protected_divide(arg1, arg2):
 
 def sine(arg):
     def callable_sine():
-        return math.sin(arg())
+        try:
+            return math.sin(arg())
+        except ValueError:
+            return 1.0
     return callable_sine
 
 
 def cosine(arg):
     def callable_cosine():
-        return math.cos(arg())
+        try:
+            return math.cos(arg())
+        except ValueError:
+            return 1.0
     return callable_cosine
 
 

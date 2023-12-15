@@ -61,7 +61,7 @@ def flatten(expression, path=None):
 
 def mutate(expression, target_path, functions, all_symbols, terminal_symbols, replacement=None):
     if len(target_path) == 1:
-        return get_random_expression(functions, all_symbols, terminal_symbols) \
+        return get_random_expression(functions, all_symbols, terminal_symbols, max_level=3) \
             if replacement is None else replacement
 
     root = expression[0]
@@ -87,7 +87,7 @@ def solve(data, terminals, functions, error_function, numeric_constants=None, it
 
     training_data = data[:int(len(data) / 2)]
     test_data = data[int(len(data) / 2):]
-    for _ in range(iterations):
+    for i in range(iterations):
         nodes = flatten(best_expression)
         selected_node = choice(nodes)
         target = selected_node[1]
@@ -99,6 +99,6 @@ def solve(data, terminals, functions, error_function, numeric_constants=None, it
             best_error = training_set_error
             best_expression = expression
             test_set_error = error_function(callable_expression, test_data)
-            print(training_set_error, test_set_error, expression)
+            print(i, training_set_error, test_set_error, expression)
 
     return best_error, best_expression
