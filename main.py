@@ -1,6 +1,6 @@
 from genetic_programming.gp import solve
 from genetic_programming.callables.basic_maths import \
-    add, subtract, multiply, protected_divide, sine, cosine, protected_power, protected_log
+    add, subtract, multiply, protected_divide, sine, cosine, exp, protected_log
 from symbolic_regression.terminals import x
 from symbolic_regression.dataset import get_data_points
 from symbolic_regression.gp import get_mean_absolute_error
@@ -12,7 +12,7 @@ domain_functions = {
     '%': protected_divide,
     'sin': sine,
     'cos': cosine,
-    'pow': protected_power,
+    'exp': exp,
     'log': protected_log,
 }
 

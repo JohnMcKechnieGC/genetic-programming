@@ -168,9 +168,9 @@ def solve_random(terminals, functions, error_function, numeric_constants=None, i
 
 
 def select_parent(population):
-    r1 = randint(0, len(population) - 1)
-    r2 = randint(0, len(population) - 1)
-    return population[r1][0] if population[r1][1] > population[r2][1] else population[r2][0]
+    candidates = [randint(0, len(population) - 1) for _ in range(10)]
+    winner = min(candidates, key=lambda x: population[x][1])
+    return population[winner][0]
 
 
 def random_population(population_size, functions, all_symbols, terminal_symbols, terminals, max_level, error_function):
@@ -243,5 +243,5 @@ def solve(terminals, functions, error_function, numeric_constants=None, iteratio
         best_in_generation = get_best_in_generation(population)
         if best_in_generation[1] < best_so_far[1]:
             best_so_far = best_in_generation
-        print(i, best_in_generation[1], best_in_generation[0])
+            print(i, best_in_generation[1], best_in_generation[0])
     return best_so_far

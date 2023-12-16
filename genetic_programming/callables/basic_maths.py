@@ -61,10 +61,19 @@ def protected_power(arg1, arg2):
     return callable_protected_power
 
 
-def protected_log(arg1, arg2):
+def protected_log(arg):
     def callable_protected_log():
         try:
-            return math.log(arg1(), arg2())
+            return math.log(arg())
         except (ValueError, ZeroDivisionError):
             return 1.0
     return callable_protected_log
+
+
+def exp(arg):
+    def callable_exp():
+        try:
+            return math.e ** arg()
+        except OverflowError:
+            return 1.0
+    return callable_exp
