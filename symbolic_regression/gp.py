@@ -9,5 +9,5 @@
 
 def get_mean_absolute_error(points):
     def mean_absolute_error(func):
-        return sum([abs((point[1] - func(point)())) for point in points]) / len(points)
+        return sum([abs((y - func(x)())) for (x, y) in points]) / len(points)
     return mean_absolute_error

@@ -5,25 +5,25 @@ from copy import deepcopy
 
 
 def get_callable_expression(functions, terminals, val):
-    def leaf_node(point):
+    def leaf_node(x_value):
         if str(val).isnumeric():
             return number(val)
         else:
-            return terminals[val](point)
+            return terminals[val](x_value)
 
-    def branch_node(point):
+    def branch_node(x_value):
         symbol = val[0]
         function = functions[symbol]
         args = []
         for arg in val[1:]:
-            args.append(get_callable_expression(functions, terminals, arg)(point))
+            args.append(get_callable_expression(functions, terminals, arg)(x_value))
         return function(*args)
 
-    def callable_expression(point):
+    def callable_expression(x_value):
         if isinstance(val, tuple):
-            return branch_node(point)
+            return branch_node(x_value)
         else:
-            return leaf_node(point)
+            return leaf_node(x_value)
 
     return callable_expression
 

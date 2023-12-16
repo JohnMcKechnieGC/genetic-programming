@@ -3,6 +3,11 @@ from genetic_programming.callables.basic_maths import \
     add, subtract, multiply, protected_divide, sine, cosine, protected_power, protected_log
 from gp import mutate, crossover, get_subtree, replace_subtree
 
+from symbolic_regression.dataset import get_data_points
+from symbolic_regression.gp import get_mean_absolute_error
+from gp import get_callable_expression
+from symbolic_regression.terminals import x
+
 
 class TestMutation(TestCase):
     def setUp(self):
@@ -97,3 +102,22 @@ class TestCrossover(TestCase):
         expected_c2 = ('+', ('%', ('%', ('log', 4, 2), ('-', ('*', 'x', 'x'), 2)), 4), 1)
         self.assertEquals(expected_c1, c1)
         self.assertEquals(expected_c2, c2)
+
+
+class TestEvaluation(TestCase):
+    def test_evaluation_function(self):
+        training_data = get_data_points(n=20)
+        # numeric_constant_terminals = [1, 2, 3, 4, 5]
+        error_function = get_mean_absolute_error([point for point in training_data])
+        x2 = ('*', 'x', 'x')
+        x3 = ('*', 'x', x2)
+        x4 = ('*', 'x', x3)
+        x2_plus = ('+', x2, 'x')
+        x3_plus = ('+', x3, x2_plus)
+        x4_plus = ('+', x4, x3_plus)
+        terminals = {'x': x}
+        functions = {'+': add, '*': multiply}
+
+        func = get_callable_expression(functions, terminals, x4_plus)
+        error = error_function(func)
+        self.assertAlmostEquals(error, 0.0)
