@@ -26,4 +26,3 @@ if __name__ == '__main__':
     # numeric_constant_terminals = [1, 2, 3, 4, 5]
     error_function = get_mean_absolute_error([point for point in training_data])
     training_error, expression = solve(domain_terminals, domain_functions, error_function)
-    print(training_error, expression)

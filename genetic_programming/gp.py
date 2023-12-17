@@ -28,21 +28,20 @@ def get_callable_expression(functions, terminals, val):
     return callable_expression
 
 
-def tree(all_symbols, terminal_symbols, functions, symbol, level, max_level):
-    function_callable = functions[symbol]
-    arity = len(getfullargspec(function_callable).args)
-    result = [symbol]
-    result.extend([get_random_expression(functions, all_symbols, terminal_symbols, level + 1, max_level)
-                   for _ in range(arity)])
-    result = tuple(result)
-    return result
-
-
 def get_random_expression(functions, all_symbols, terminal_symbols, level=1, max_level=3):
+    def tree():
+        function = functions[symbol]
+        arity = len(getfullargspec(function).args)
+        result = [symbol]
+        result.extend([get_random_expression(functions, all_symbols, terminal_symbols, level + 1, max_level)
+                       for _ in range(arity)])
+        result = tuple(result)
+        return result
+
     symbol = choice(all_symbols) if level < max_level \
         else choice(terminal_symbols)
     return symbol if symbol in terminal_symbols \
-        else tree(all_symbols, terminal_symbols, functions, symbol, level, max_level)
+        else tree()
 
 
 def flatten(expression, path=None):
@@ -84,70 +83,21 @@ def replace_subtree(expression, target_path, replacement):
     return new_expression
 
 
-def select_crossover_candidate(expression, terminal_symbols, prob_internal=0.9):
-    target_candidates = flatten(expression)
-    if random() < prob_internal:
-        internal_candidates = [candidate for candidate in target_candidates if candidate[0] not in terminal_symbols]
-        if len(internal_candidates) > 0:
-            target_candidates = internal_candidates
-    else:
-        target_candidates = [candidate for candidate in target_candidates if candidate[0] in terminal_symbols]
-    return choice(target_candidates)[1]
-
-
-def setup(functions, numeric_constants, terminals):
-    function_symbols = list(functions.keys())
-    terminal_symbols = list(terminals.keys())
-    if numeric_constants is not None:
-        terminal_symbols.extend(numeric_constants)
-    all_symbols = function_symbols + terminal_symbols
-    return all_symbols, terminal_symbols
-
-
-def get_random_target(expression):
-    nodes = flatten(expression)
-    selected_node = choice(nodes)
-    target = selected_node[1]
-    return target
-
-
-def select_parent(population, tournament_size=10):
-    candidates = [randint(0, len(population) - 1) for _ in range(tournament_size)]
-    winner = min(candidates, key=lambda x: population[x][1])
-    return population[winner][0]
-
-
-def random_population(population_size, functions, all_symbols, terminal_symbols, terminals, max_level, error_function):
-    population = [get_random_expression(functions, all_symbols, terminal_symbols, max_level=max_level)
-                  for _ in range(population_size)]
-    population = [(population[i], error_function(get_callable_expression(functions, terminals, population[i])))
-                  for i in range(population_size)]
-    return population
-
-
-def get_best_in_generation(population):
-    return min(population, key=lambda x: x[1])
-
-
-def initialise_next_generation(use_elitism, best_so_far):
-    next_generation = []
-    if use_elitism:
-        next_generation.append(best_so_far[0])
-    return next_generation
-
-
 def crossover(expression1, expression2, terminal_symbols, target1=None, target2=None):
-    target1 = select_crossover_candidate(expression1, terminal_symbols) if target1 is None else target1
-    target2 = select_crossover_candidate(expression2, terminal_symbols) if target2 is None else target2
+    def select_crossover_candidate(expression, prob_internal=0.9):
+        target_candidates = flatten(expression)
+        if random() <= prob_internal:
+            internal_candidates = [candidate for candidate in target_candidates if candidate[0] not in terminal_symbols]
+            if len(internal_candidates) > 0:
+                target_candidates = internal_candidates
+        else:
+            target_candidates = [candidate for candidate in target_candidates if candidate[0] in terminal_symbols]
+        return choice(target_candidates)[1]
+
+    target1 = select_crossover_candidate(expression1) if target1 is None else target1
+    target2 = select_crossover_candidate(expression2) if target2 is None else target2
     subtree = get_subtree(expression2, target2)
     child = replace_subtree(expression1, target1, subtree)
-    return child
-
-
-def apply_crossover(population, terminal_symbols):
-    parent1 = select_parent(population)
-    parent2 = select_parent(population)
-    child = crossover(parent1, parent2, terminal_symbols)
     return child
 
 
@@ -167,61 +117,92 @@ def mutate(expression, target_path, functions, all_symbols, terminal_symbols, re
     return new_expression
 
 
-def apply_mutation(population, functions, all_symbols, terminal_symbols):
-    expression = select_parent(population)
-    mutation_target = get_random_target(expression)
-    expression = mutate(expression, mutation_target, functions, all_symbols, terminal_symbols)
-    return expression
+def get_symbols(functions, numeric_constants, terminals):
+    function_symbols = list(functions.keys())
+    terminal_symbols = list(terminals.keys())
+    if numeric_constants is not None:
+        terminal_symbols.extend(numeric_constants)
+    all_symbols = function_symbols + terminal_symbols
+    return all_symbols, terminal_symbols
 
 
-def populate_next_generation(population, population_size, use_elitism, best_so_far, crossover_rate, mutation_rate,
-                             functions, all_symbols, terminal_symbols):
-    next_generation = initialise_next_generation(use_elitism, best_so_far)
-    while len(next_generation) < population_size:
-        r = random()
-        if r <= crossover_rate:
-            child = apply_crossover(population, terminal_symbols)
-        elif r < (crossover_rate + mutation_rate):
-            child = apply_mutation(population, functions, all_symbols, terminal_symbols)
-        else:
-            child = deepcopy(select_parent(population))
-        next_generation.append(child)
-    return next_generation
+def solve(terminals, functions, calculate_error, numeric_constants=None, max_iterations=50, max_level=5,
+          population_size=500, crossover_rate=0.9, mutation_rate=0.01, using_elitism=False):
+    def get_initial_generation():
+        expressions = [get_random_expression(functions, all_symbols, terminal_symbols, max_level=max_level)
+                       for _ in range(population_size)]
+        first_generation = [(expressions[i],
+                             calculate_error(get_callable_expression(functions, terminals, expressions[i])))
+                             for i in range(population_size)]
+        return first_generation
 
+    def get_next_generation():
+        def select_parent(tournament_size=5):
+            candidates = [randint(0, len(population) - 1) for _ in range(tournament_size)]
+            winner = min(candidates, key=lambda x: population[x][1])
+            return population[winner][0]
 
-def evaluate_next_generation(next_generation, functions, terminals, error_function):
-    population = next_generation
-    population = [(population[i],
-                   error_function(get_callable_expression(functions, terminals, population[i])))
-                  for i in range(len(population))]
-    return population
+        def create_child():
+            def apply_mutation():
+                def get_random_target():
+                    nodes = flatten(expression)
+                    selected_node = choice(nodes)
+                    target = selected_node[1]
+                    return target
 
+                expression = select_parent()
+                mutation_target = get_random_target()
+                return mutate(expression, mutation_target, functions, all_symbols, terminal_symbols)
 
-def solve(terminals, functions, calculate_error, numeric_constants=None, iterations=50, max_level=5,
-          population_size=500, crossover_rate=0.9, mutation_rate=0.01, use_elitism=False):
-    all_symbols, terminal_symbols = setup(functions, numeric_constants, terminals)
-    population = random_population(population_size, functions, all_symbols, terminal_symbols, terminals, max_level,
-                                   calculate_error)
-    best_so_far = get_best_in_generation(population)
-    for i in range(iterations):
-        next_generation = populate_next_generation(population, population_size, use_elitism, best_so_far, crossover_rate,
-                                                   mutation_rate, functions, all_symbols, terminal_symbols)
-        population = evaluate_next_generation(next_generation, functions, terminals, calculate_error)
-        best_in_generation = get_best_in_generation(population)
+            def apply_crossover():
+                parent1 = select_parent()
+                parent2 = select_parent()
+                return crossover(parent1, parent2, terminal_symbols)
+
+            r = random()
+            if r <= crossover_rate:
+                child = apply_crossover()
+            elif r <= (crossover_rate + mutation_rate):
+                child = apply_mutation()
+            else:
+                child = deepcopy(select_parent())
+            return child
+
+        expressions = [best_so_far] if using_elitism else []
+        while len(expressions) < population_size:
+            expressions.append(create_child())
+        next_generation = evaluate_expressions(expressions)
+        return next_generation
+
+    def evaluate_expressions(expressions):
+        return [(expressions[i],
+                 calculate_error(get_callable_expression(functions, terminals, expressions[i])))
+                for i in range(len(expressions))]
+
+    def get_best_solution():
+        return min(population, key=lambda x: x[1])
+
+    all_symbols, terminal_symbols = get_symbols(functions, numeric_constants, terminals)
+    population = get_initial_generation()
+    best_so_far = get_best_solution()
+    print(0, best_so_far[1], best_so_far[0])
+    for iteration in range(max_iterations):
+        population = get_next_generation()
+        best_in_generation = get_best_solution()
         if best_in_generation[1] < best_so_far[1]:
             best_so_far = best_in_generation
-            print(i, best_in_generation[1], best_in_generation[0])
+            print(iteration + 1, best_in_generation[1], best_in_generation[0])
     return best_so_far
 
 
 def solve_random(terminals, functions, calculate_error, numeric_constants=None, iterations=100, max_level=5):
-    all_symbols, terminal_symbols = setup(functions, numeric_constants, terminals)
+    all_symbols, terminal_symbols = get_symbols(functions, numeric_constants, terminals)
 
-    best_expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
+    best_expression = get_random_expression(functions, all_symbols, terminal_symbols, max_level=max_level)
     best_error = calculate_error(get_callable_expression(functions, terminals, best_expression))
 
     for i in range(iterations):
-        new_expression = get_random_expression(functions, all_symbols, terminal_symbols, 1, max_level)
+        new_expression = get_random_expression(functions, all_symbols, terminal_symbols, max_level=max_level)
         callable_expression = get_callable_expression(functions, terminals, new_expression)
         training_set_error = calculate_error(callable_expression)
 
