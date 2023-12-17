@@ -100,9 +100,20 @@ def replace_subtree(expression, target_path, replacement):
     return new_expression
 
 
-def crossover(expression1, expression2, target1=None, target2=None):
-    target1 = choice(flatten(expression1))[1] if target1 is None else target1
-    target2 = choice(flatten(expression2))[1] if target2 is None else target2
+def select_crossover_candidate(expression, terminal_symbols, prob_internal=0.9):
+    target_candidates = flatten(expression)
+    if random() < prob_internal:
+        internal_candidates = [candidate for candidate in target_candidates if candidate[0] not in terminal_symbols]
+        if len(internal_candidates) > 0:
+            target_candidates = internal_candidates
+    else:
+        target_candidates = [candidate for candidate in target_candidates if candidate[0] in terminal_symbols]
+    return choice(target_candidates)[1]
+
+
+def crossover(expression1, expression2, terminal_symbols, target1=None, target2=None):
+    target1 = select_crossover_candidate(expression1, terminal_symbols) if target1 is None else target1
+    target2 = select_crossover_candidate(expression2, terminal_symbols) if target2 is None else target2
     subtree1 = get_subtree(expression1, target1)
     subtree2 = get_subtree(expression2, target2)
     crossed1 = replace_subtree(expression1, target1, subtree2)
@@ -181,9 +192,9 @@ def random_population(population_size, functions, all_symbols, terminal_symbols,
     return population
 
 
-def apply_crossover(parent1, parent2, crossover_rate):
+def apply_crossover(parent1, parent2, crossover_rate, terminal_symbols):
     if random() < crossover_rate:
-        child1, child2 = crossover(parent1, parent2)
+        child1, child2 = crossover(parent1, parent2, terminal_symbols)
     else:
         child1 = deepcopy(parent1)
         child2 = deepcopy(parent2)
@@ -214,7 +225,7 @@ def populate_next_generation(population, elitism_rate, best_so_far, crossover_ra
     for _ in range(len(population) // 2):
         parent1 = select_parent(population)
         parent2 = select_parent(population)
-        child1, child2 = apply_crossover(parent1, parent2, crossover_rate)
+        child1, child2 = apply_crossover(parent1, parent2, crossover_rate, terminal_symbols)
         child1 = apply_mutation(child1, mutation_rate, functions, all_symbols, terminal_symbols)
         child2 = apply_mutation(child2, mutation_rate, functions, all_symbols, terminal_symbols)
         next_generation.append(child1)
@@ -231,7 +242,7 @@ def evaluate_next_generation(next_generation, functions, terminals, error_functi
 
 
 def solve(terminals, functions, error_function, numeric_constants=None, iterations=50, max_level=5,
-          population_size=500, crossover_rate=0.7, mutation_rate=0, elitism_rate=0):
+          population_size=500, crossover_rate=0.9, reproduction_rate=0.1, mutation_rate=0, elitism_rate=0):
     all_symbols, terminal_symbols = setup(functions, numeric_constants, terminals)
     population = random_population(population_size, functions, all_symbols, terminal_symbols, terminals, max_level,
                                    error_function)
