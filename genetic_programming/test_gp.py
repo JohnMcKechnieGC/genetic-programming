@@ -97,11 +97,9 @@ class TestCrossover(TestCase):
         self.assertEquals(expected_result, result)
 
     def test_crossover(self):
-        c1, c2 = crossover(self.expression1, self.expression2, [], target1=self.target1, target2=self.target2)
-        expected_c1 = ('-', ('pow', ('log', 3, ('*', 2, 1)), 5), ('log', 'x', ('pow', 2, 'x')))
-        expected_c2 = ('+', ('%', ('%', ('log', 4, 2), ('-', ('*', 'x', 'x'), 2)), 4), 1)
-        self.assertEquals(expected_c1, c1)
-        self.assertEquals(expected_c2, c2)
+        child = crossover(self.expression1, self.expression2, [], target1=self.target1, target2=self.target2)
+        expected_child = ('-', ('pow', ('log', 3, ('*', 2, 1)), 5), ('log', 'x', ('pow', 2, 'x')))
+        self.assertEquals(expected_child, child)
 
 
 class TestEvaluation(TestCase):
