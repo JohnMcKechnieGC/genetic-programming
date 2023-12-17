@@ -2,6 +2,8 @@ from inspect import getfullargspec
 from random import choice, randint, random
 from genetic_programming.callables.basic_maths import number
 from copy import deepcopy
+from collections import namedtuple
+Solution = namedtuple("Solution", "expression error")
 
 
 def get_callable_expression(functions, terminals, val):
@@ -131,16 +133,16 @@ def solve(terminals, functions, calculate_error, numeric_constants=None, max_ite
     def get_initial_generation():
         expressions = [get_random_expression(functions, all_symbols, terminal_symbols, max_level=max_level)
                        for _ in range(population_size)]
-        first_generation = [(expressions[i],
-                             calculate_error(get_callable_expression(functions, terminals, expressions[i])))
+        first_generation = [Solution(expressions[i],
+                                     calculate_error(get_callable_expression(functions, terminals, expressions[i])))
                              for i in range(population_size)]
         return first_generation
 
     def get_next_generation():
         def select_parent(tournament_size=5):
             candidates = [randint(0, len(population) - 1) for _ in range(tournament_size)]
-            winner = min(candidates, key=lambda x: population[x][1])
-            return population[winner][0]
+            winner = min(candidates, key=lambda i: population[i].error)
+            return population[winner].expression
 
         def create_child():
             def apply_mutation():
@@ -175,23 +177,23 @@ def solve(terminals, functions, calculate_error, numeric_constants=None, max_ite
         return next_generation
 
     def evaluate_expressions(expressions):
-        return [(expressions[i],
-                 calculate_error(get_callable_expression(functions, terminals, expressions[i])))
+        return [Solution(expressions[i],
+                         calculate_error(get_callable_expression(functions, terminals, expressions[i])))
                 for i in range(len(expressions))]
 
     def get_best_solution():
-        return min(population, key=lambda x: x[1])
+        return min(population, key=lambda solution: solution.error)
 
     all_symbols, terminal_symbols = get_symbols(functions, numeric_constants, terminals)
     population = get_initial_generation()
     best_so_far = get_best_solution()
-    print(0, best_so_far[1], best_so_far[0])
-    for iteration in range(max_iterations):
+    print(0, best_so_far.error, best_so_far.expression)
+    for iteration in range(1, max_iterations + 1):
         population = get_next_generation()
         best_in_generation = get_best_solution()
-        if best_in_generation[1] < best_so_far[1]:
+        if best_in_generation.error < best_so_far.error:
             best_so_far = best_in_generation
-            print(iteration + 1, best_in_generation[1], best_in_generation[0])
+            print(iteration, best_in_generation.error, best_in_generation.expression)
     return best_so_far
 
 
