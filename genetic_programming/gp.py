@@ -85,10 +85,19 @@ def replace_subtree(expression, target_path, replacement):
     return new_expression
 
 
-def crossover(expression1, expression2, terminal_symbols, target1=None, target2=None):
-    def select_crossover_candidate(expression, prob_internal=0.9):
+def crossover(expression1, expression2, terminal_symbols, max_total_depth=18, target1=None, target2=None):
+    def select_crossover_candidate(expression, max_subtree_depth=None, prob_internal=0.9):
+        def get_subtree_depth(candidate):
+            return max([len(el[1]) for el in target_candidates
+                                 if el[1][:len(candidate[1])] == candidate[1]])\
+                            - len(candidate[1]) + 1
+
         target_candidates = flatten(expression)
         if random() <= prob_internal:
+            if max_subtree_depth is not None:
+                depths = [get_subtree_depth(candidate) for candidate in target_candidates]
+                target_candidates = [target_candidates[i] for i in range(len(target_candidates))
+                                     if depths[i] <= max_subtree_depth]
             internal_candidates = [candidate for candidate in target_candidates if candidate[0] not in terminal_symbols]
             if len(internal_candidates) > 0:
                 target_candidates = internal_candidates
@@ -97,7 +106,12 @@ def crossover(expression1, expression2, terminal_symbols, target1=None, target2=
         return choice(target_candidates)[1]
 
     target1 = select_crossover_candidate(expression1) if target1 is None else target1
-    target2 = select_crossover_candidate(expression2) if target2 is None else target2
+
+    # The mutation operator can still grow tress deeper than max_total_depth,
+    # so ensure max_depth of the subtree is positive
+    max_depth = max(max_total_depth - len(target1) + 1, 1)
+
+    target2 = select_crossover_candidate(expression2, max_subtree_depth=max_depth) if target2 is None else target2
     subtree = get_subtree(expression2, target2)
     child = replace_subtree(expression1, target1, subtree)
     return child
