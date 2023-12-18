@@ -1,6 +1,6 @@
 from inspect import getfullargspec
 from random import choice, randint, random
-from genetic_programming.callables.basic_maths import number
+from genetic_programming.basic_maths_functions import number
 from copy import deepcopy
 from collections import namedtuple
 Solution = namedtuple("Solution", "expression error")

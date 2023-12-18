@@ -1,12 +1,10 @@
 from unittest import TestCase
-from genetic_programming.callables.basic_maths import \
+from genetic_programming.basic_maths_functions import \
     add, subtract, multiply, protected_divide, sine, cosine, protected_power, protected_log
 from gp import mutate, crossover, get_subtree, replace_subtree
 
-from symbolic_regression.dataset import get_data_points
-from main import mean_absolute_error
+from koza_symbolic_regression import get_data_points, mean_absolute_error, x
 from gp import get_callable_expression
-from symbolic_regression.terminals import x
 
 
 class TestMutation(TestCase):
