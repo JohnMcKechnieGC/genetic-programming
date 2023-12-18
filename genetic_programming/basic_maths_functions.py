@@ -1,79 +1,90 @@
 import math
+import functools
 
 
 def number(val):
-    def callable_number():
+    @functools.wraps(number)
+    def number_wrapper():
         return float(val)
-    return callable_number
+    return number_wrapper
 
 
 def add(arg1, arg2):
-    def callable_add():
+    @functools.wraps(add)
+    def add_wrapper():
         return arg1() + arg2()
-    return callable_add
+    return add_wrapper
 
 
 def subtract(arg1, arg2):
-    def callable_subtract():
+    @functools.wraps(subtract)
+    def subtract_wrapper():
         return arg1() - arg2()
-    return callable_subtract
+    return subtract_wrapper
 
 
 def multiply(arg1, arg2):
-    def callable_multiply():
+    @functools.wraps(multiply)
+    def multiply_wrapper():
         return arg1() * arg2()
-    return callable_multiply
+    return multiply_wrapper
 
 
 def protected_divide(arg1, arg2):
-    def callable_protected_divide():
+    @functools.wraps(protected_divide)
+    def protected_divide_wrapper():
         try:
             return arg1() / arg2()
         except ZeroDivisionError:
             return 1.0
-    return callable_protected_divide
+    return protected_divide_wrapper
 
 
 def sine(arg):
-    def callable_sine():
+    @functools.wraps(sine)
+    def sine_wrapper():
         try:
             return math.sin(arg())
         except ValueError:
             return 1.0
-    return callable_sine
+    return sine_wrapper
 
 
 def cosine(arg):
-    def callable_cosine():
+    @functools.wraps(cosine)
+    def cosine_wrapper():
         try:
             return math.cos(arg())
         except ValueError:
             return 1.0
-    return callable_cosine
+    return cosine_wrapper
 
 
 def protected_power(arg1, arg2):
-    def callable_protected_power():
+    @functools.wraps(protected_power)
+    def protected_power_wrapper():
         try:
             return math.pow(arg1(), arg2())
         except (ValueError, ZeroDivisionError, OverflowError):
             return 1.0
-    return callable_protected_power
+    return protected_power_wrapper
 
 
 def protected_log(arg):
-    def callable_protected_log():
+    @functools.wraps(protected_log)
+    def protected_log_wrapper():
         try:
             return math.log(arg())
         except (ValueError, ZeroDivisionError):
             return 1.0
-    return callable_protected_log
+    return protected_log_wrapper
 
 
 def exp(arg):
-    def callable_exp():
+    @functools.wraps(exp)
+    def exp_wrapper():
         try:
             return math.e ** arg()
         except OverflowError:
             return 1.0
-    return callable_exp
+    return exp_wrapper

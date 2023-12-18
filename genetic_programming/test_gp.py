@@ -3,7 +3,7 @@ from genetic_programming.basic_maths_functions import \
     add, subtract, multiply, protected_divide, sine, cosine, protected_power, protected_log
 from gp import mutate, crossover, get_subtree, replace_subtree
 
-from koza_symbolic_regression import get_data_points, mean_absolute_error, x
+from koza_symbolic_regression import get_data_points, mean_absolute_error, x_val
 from gp import get_callable_expression
 
 
@@ -111,7 +111,7 @@ class TestEvaluation(TestCase):
         x2_plus = ('+', x2, 'x')
         x3_plus = ('+', x3, x2_plus)
         x4_plus = ('+', x4, x3_plus)
-        terminals = {'x': x}
+        terminals = {'x': x_val}
         functions = {'+': add, '*': multiply}
 
         func = get_callable_expression(functions, terminals, x4_plus)

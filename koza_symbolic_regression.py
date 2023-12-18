@@ -2,6 +2,7 @@ from genetic_programming.gp import solve
 from genetic_programming.basic_maths_functions import \
     add, subtract, multiply, protected_divide, sine, cosine, exp, protected_log
 from random import random
+import functools
 
 
 # Domain specific dataset
@@ -15,16 +16,17 @@ def get_data_points(n=100):
 
 
 # Domain specific terminal functions
-def x(x_value):
-    def callable_x():
-        return x_value
-    return callable_x
+def x_val(x):
+    @functools.wraps(x_val)
+    def x_val_wrapper():
+        return x
+    return x_val_wrapper
 
 
 # Domain specific error function
 def mean_absolute_error(data):
     def callable_mean_absolute_error(gp_func):
-        return sum([abs((y_val - gp_func(x_val)())) for (x_val, y_val) in data]) / len(data)
+        return sum([abs((y - gp_func(x)())) for (x, y) in data]) / len(data)
     return callable_mean_absolute_error
 
 
@@ -43,7 +45,7 @@ domain_functions = {
 
 # Map symbols to terminals for this domain
 domain_terminals = {
-    'x': x
+    'x': x_val
 }
 
 
