@@ -198,22 +198,31 @@ def solve(terminals, functions, calculate_error, numeric_constants=None, max_ite
     def get_best_solution():
         return min(population, key=lambda solution: solution.error)
 
+    def report(generation):
+        if verbose:
+            print(generation, best_so_far.error, best_so_far.expression)
+
+    def progress(current, total):
+        if not verbose:
+            if current > 1:
+                print('\b' * total, end='')
+            print('#' * current, end='')
+            print('.' * (total - current), end='')
+            if current == total:
+                print('\b' * total, end='')
+
     all_symbols, terminal_symbols = get_symbols(functions, numeric_constants, terminals)
     population = get_initial_generation()
     best_so_far = get_best_solution()
-    if verbose:
-        print(0, best_so_far.error, best_so_far.expression)
+    report(0)
+
     for iteration in range(1, max_iterations + 1):
         population = get_next_generation()
         best_in_generation = get_best_solution()
         if best_in_generation.error < best_so_far.error:
             best_so_far = best_in_generation
-            if verbose:
-                print(iteration, best_in_generation.error, best_in_generation.expression)
-        if not verbose:
-            print('#', end='')
-    if not verbose:
-        print('\b' * max_iterations, end='')
+            report(iteration)
+        progress(iteration, max_iterations)
     return best_so_far.expression, best_so_far.error
 
 
