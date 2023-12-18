@@ -210,7 +210,11 @@ def solve(terminals, functions, calculate_error, numeric_constants=None, max_ite
             best_so_far = best_in_generation
             if verbose:
                 print(iteration, best_in_generation.error, best_in_generation.expression)
-    return best_so_far
+        if not verbose:
+            print('#', end='')
+    if not verbose:
+        print('\b' * max_iterations, end='')
+    return best_so_far.expression, best_so_far.error
 
 
 def solve_random(terminals, functions, calculate_error, numeric_constants=None, iterations=100, max_level=5):
