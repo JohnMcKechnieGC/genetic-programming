@@ -88,3 +88,5 @@ def exp(arg):
         except OverflowError:
             return 1.0
     return exp_wrapper
+
+# TODO: Default value is wrong in some of the protected functions. Research and fix.

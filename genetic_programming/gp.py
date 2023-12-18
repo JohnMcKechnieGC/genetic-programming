@@ -244,3 +244,8 @@ def solve_random(terminals, functions, calculate_error, numeric_constants=None, 
             print(i, training_set_error, test_set_error, new_expression)
 
     return best_error, best_expression
+
+# TODO: max_level applies only to initial random trees, and it's not possible to control the maximum depth
+#       from the application.
+# TODO: Review the default values of control parameters in Koza GP1 and ensure consistency.
+# TODO: Control depth in mutation. Only crossover controlled at the moment.
