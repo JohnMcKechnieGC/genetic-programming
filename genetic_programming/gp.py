@@ -143,7 +143,7 @@ def get_symbols(functions, numeric_constants, terminals):
 
 
 def solve(terminals, functions, calculate_error, numeric_constants=None, max_iterations=50, max_level=5,
-          population_size=500, crossover_rate=0.9, mutation_rate=0.01, using_elitism=False):
+          population_size=500, crossover_rate=0.9, mutation_rate=0.01, using_elitism=False, verbose=True):
     def get_initial_generation():
         expressions = [get_random_expression(functions, all_symbols, terminal_symbols, max_level=max_level)
                        for _ in range(population_size)]
@@ -201,13 +201,15 @@ def solve(terminals, functions, calculate_error, numeric_constants=None, max_ite
     all_symbols, terminal_symbols = get_symbols(functions, numeric_constants, terminals)
     population = get_initial_generation()
     best_so_far = get_best_solution()
-    print(0, best_so_far.error, best_so_far.expression)
+    if verbose:
+        print(0, best_so_far.error, best_so_far.expression)
     for iteration in range(1, max_iterations + 1):
         population = get_next_generation()
         best_in_generation = get_best_solution()
         if best_in_generation.error < best_so_far.error:
             best_so_far = best_in_generation
-            print(iteration, best_in_generation.error, best_in_generation.expression)
+            if verbose:
+                print(iteration, best_in_generation.error, best_in_generation.expression)
     return best_so_far
 
 
